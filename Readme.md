@@ -8,13 +8,13 @@ Backblaze B2 is cheaper than solutions such as S3 and GCS, and thus more reasona
 
 ## Features
 
-- ## Asynchronous file uploads with validation
-- ## Metadata fields
-- ## Retrieval endpoints with pagination and filtering
-- ## Cloud storage using Backblaze B2
-- ## Celery workers for async file upload processing
-- ## Docker-Compose setup and ready
-- ## 100% test coverage 
+- Asynchronous file uploads with validation
+- Metadata fields
+- Retrieval endpoints with pagination and filtering
+- Cloud storage using Backblaze B2
+- Celery workers for async file upload processing
+- Docker-Compose setup and ready
+- 100% test coverage 
 
 ## API endpoints
 
