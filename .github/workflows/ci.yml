@@ -1,0 +1,82 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+  
+  jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_fileservice
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 
+      uses: actions/setup-python@v4 
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt 
+        pip install black flake8 requests 
+
+    - name: Run Black (formatting check)
+      run: black --check --dif app/
+    
+    - name: Run Flake8 (linting)
+      run: flake8 app/ --max-line-length=100
+
+    - name: Create db templates 
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_fileservice
+        REDIS_URL: redis://localhost:6379
+        B2_APPLICATION_KEY_ID: test_key_id
+        B2_APPLICATION_KEY: test_key
+        B2_BUCKET_NAME: test_bucket
+
+      run: |
+        python -c "
+        import sys
+        sys.path.insert(0, '.')
+        from app.database import engine
+        from app.models import Base
+        Base.metadata.create_all(bind=engine)
+        "
+      
+    - name: Start application
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_fileservice
+        REDIS_URL: redis://localhost:6379
+        B2_APPLICATION_KEY_ID: test_key_id
+        B2_APPLICATION_KEY: test_key
+        B2_BUCKET_NAME: test_bucket
+      run: |
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+        curl -f http://localhost:8000/health
+
+    - name: Run API tests
+      run: python app/tests/test_api.py
