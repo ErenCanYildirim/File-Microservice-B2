@@ -25,6 +25,8 @@ Backblaze B2 is cheaper than solutions such as S3 and GCS, and thus more reasona
 | DELETE | `/files/{file_id}`           | Delete file by ID                |
 | GET    | `/files/{file_id}/download`  | Get public download link   
 
+![Architecture diagram](architecture.png)
+
 ## Tests
 
 All tests are located in [`tests/`](./tests). Please read the test_summary.md for further
